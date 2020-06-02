@@ -1,0 +1,619 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+const int MAXN = 1000;
+int n = 7, coun = 0;
+int M = 56;
+int R = 10;
+vector<vector<int> > c;
+vector<bool> used(M);
+
+double norm(double x){
+    x *= 100000000;
+    x = round(x);
+    x /= 100000000;
+    return x;
+}
+
+vector<double> vecXint(vector<double> v, int x){
+    for (int i = 0; i < v.size(); i++){
+        v[i] *= x;
+    }
+    return v;
+}
+
+int dfs(int x, vector<vector<int>> e){
+    if (!used[x]){
+        used[x] = true;
+        int sum = 1;
+        for (int i = 0; i < M; i++){
+            if (e[x][i] != -1){
+                sum += dfs(i, e);
+            }
+        }
+        return sum;
+    } else {
+        return 0;
+    }
+}
+
+int dfsne7(int x, vector<vector<int>> e){
+    if (!used[x]){
+        used[x] = true;
+        int sum = 1;
+        for (int i = 0; i < M; i++){
+            if (e[x][i] != -1 && e[x][i] != 6){
+                sum += dfsne7(i, e);
+            }
+        }
+        return sum;
+    } else {
+        return 0;
+    }
+}
+
+void printVec(vector<int> v){
+    for (int i = 0; i < v.size(); i++){
+        cout << v[i] << " ";
+    }
+    cout << endl;
+}
+
+void printVec(vector<double> v){
+    for (int i = 0; i < v.size(); i++){
+        cout << v[i] << " ";
+    }
+    cout << endl;
+}
+
+bool isZero(vector<double> v){
+    for (int i = 0; i < v.size(); i++){
+        if (v[i] != 0)
+            return false;
+    }
+    return true;
+}
+
+vector<int> findB(vector<int> w){
+    vector<int> k(n);
+    fill(k.begin(), k.end(), 1);
+    for (int i = 0; i < w.size(); i++){
+        int x = k[w[i]];
+        for (int j = 0; j < n; j++){
+            k[j] -= c[w[i]][j]*x;
+        }
+    }
+    return k;
+}
+
+void truePrintVec(vector<double> v){
+    for (int j = 0; j < v.size(); j++){
+        if (v[j] != 0){
+            if (v[j] > 0){
+                cout << "+";
+            } else {
+                cout << "-";
+            }
+            cout << abs(v[j]) << "a" << j+1;
+        }
+    }
+}
+
+int isIn(vector<double> v, vector<vector<double> > a){
+    for (int i = 0; i < a.size(); i++){
+        if (v == a[i]){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int main(){
+    int m;
+    freopen("input2.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+    cin >> m;
+    vector<int> nums;
+    vector<bool> k(n);
+    vector<vector<int>> e(MAXN);
+    map<vector<int>, int> renumb, renumw;
+
+
+    vector<vector<int>> marks;
+    for (int i = 0; i < M; i++){
+        vector<int> v(M);
+        fill(v.begin(), v.end(), -1);
+        marks.push_back(v);
+    }
+    vector<vector<int> > verts;
+    fill(k.begin(), k.end(), true);
+    for (int i = 0; i < m; i++){
+        int a;
+        cin >> a;
+        a--;
+        nums.push_back(a);
+        k[a] = false;
+    }
+    for (int i = 0; i < n; i++){
+        vector<int> x;
+        for (int j = 0; j < n; j++){
+            int a;
+            cin >> a;
+            x.push_back(a);
+        }
+        c.push_back(x);
+    }
+    vector<set<vector<int> > > w(MAXN);
+    vector<int> v;
+    w[0].insert(v);
+    renumw[v] = 0;
+    renumb[findB(v)] = 0;
+    verts.push_back(v);
+    coun++;
+    for (int i = 0; i < n; i++){
+        if (k[i]){
+            vector<int> u;
+            u.push_back(i);
+            w[1].insert(u);
+            renumw[u] = coun;
+            renumb[findB(u)] = coun;
+            verts.push_back(u);
+            e[0].push_back(coun);
+            marks[0][coun] = i;
+            coun++;
+        }
+    }
+    for (int t = 2; t < MAXN; t++){
+        set<vector<int> > r;
+        for (int i = 0; i < n; i++){
+            for (vector<int> x: w[t-1]){
+                vector<int> y = x;
+                y.push_back(i);
+                vector<int> b = findB(y);
+                reverse(y.begin(), y.end());
+                vector<int> binv = findB(y);
+                //printVec(b);
+                //printVec(binv);
+                if (b[i] < 0){
+                    bool f = true;
+                    for (int j = 0; j < n; j++){
+                        if (binv[j] <= 0 && !k[j]){
+                            f = false;
+                            break;
+                        }
+                    }
+                    for (vector<int> z: r){
+                        if (b == z && f){
+                            f = false;
+                            e[renumw[x]].push_back(renumb[z]);
+                            marks[renumw[x]][renumb[z]] = i;
+                            /*printVec(x);
+                            printVec(verts[renumb[z]]);
+                            cout << renumw[x] << " " << renumb[z] << endl;*/
+                            break;
+                        }
+                    }
+                    if (f){
+                        r.insert(b);
+                        vector<int> u = x;
+                        u.push_back(i);
+                        w[t].insert(u);
+                        renumb[b] = coun;
+                        renumw[u] = coun;
+                        verts.push_back(u);
+                        e[renumw[x]].push_back(renumb[b]);
+                        marks[renumw[x]][renumb[b]] = i;
+                        /*printVec(x);
+                        printVec(verts[renumb[b]]);
+                        cout << renumw[x] << " " << renumb[b] << endl;*/
+                        coun++;
+                    }
+                }
+            }
+        }
+    }
+    cout << coun << "!" << endl;
+
+    for (int i = coun-1; i >= 0; i--){
+        for (vector<int> x: w[i]){
+            cout << renumw[x] << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+
+    for (int i = 0; w[i].size() > 0; i++){
+        for (vector<int> x: w[i]){
+            for (int j = x.size() - 1; j >= 0; j--){
+                cout << "s" << x[j]+1;
+            }
+            cout << ", ";
+        }
+        cout << endl;
+    }
+
+    for (int i = 0; i < M; i++){
+        for (int j = verts[i].size() - 1; j >= 0; j--){
+            cout << "s" << verts[i][j]+1;
+        }
+        cout << ", ";
+    }
+    cout << endl;
+
+    for (int i = 0; i < marks.size(); i++){
+        for (int j = 0; j < marks.size(); j++){
+
+            cout << marks[i][j]+1 << " ";
+        }
+        cout << endl;
+    }
+    int cc = 0;
+    for (int i = 0; i < M; i++){
+        if (!used[i]){
+            cout << dfsne7(i, marks) << " ";
+            cc++;
+            if (cc == 2){
+                break;
+            }
+        }
+    }
+    cout << endl << cc << endl;
+    int kk = marks.size();
+    vector<vector<vector<int> > > nm;
+    for (int i = 0; i < kk; i++){
+        vector<vector<int> > vv;
+        for (int j = 0; j < kk; j++){
+            vector<int> v;
+            if (marks[i][j] >= 0){
+                for (int l = 0; l < n; l++){
+                    v.push_back(c[marks[i][j]][l]);
+                }
+            }
+            vv.push_back(v);
+        }
+        nm.push_back(vv);
+    }
+
+    for (int i = 2; i < kk; i++){
+        if (used[i]){
+            for(int j = 0; j < kk; j++){
+                if (marks[j][i] >= 0){
+                    //cout << i << " " << j << endl;
+                    vector<int> v = nm[0][j];
+                    for (int l = 0; l < n; l++){
+                        v[l] += c[marks[j][i]][l];
+                    }
+                    nm[0][i] = v;
+                    break;
+                }
+            }
+        }
+    }
+    for(int i = 0; i < kk; i++){
+        for(int j = 0; j < kk; j++){
+            if (marks[i][j] >= 0){
+                for (int l = 0; l < kk; l++){
+                    if (nm[i][l].size() > 0 && l != j){
+                        bool f = true;
+                        for (int t = 0; t < kk; t++){
+                            if (marks[l][t] == marks[i][j]){
+                                f = false;
+
+                                nm[j][t] = nm[i][l];
+
+                                break;
+                            }
+                        }
+                        if (f){
+                            nm[j][l] = nm[i][l];
+                            for(int t = 0; t < n; t++){
+                                nm[j][l][t] -= c[marks[i][j]][t];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i = 0; i < kk; i++){
+        int step = 0;
+        for (int j = 0; j < kk; j++){
+            if (nm[i][j].size() > 0){
+                step++;
+            }
+            if (nm[j][i].size() > 0){
+                step++;
+            }
+        }
+        cout << step << " ";
+    }
+    cout << endl;
+
+    for (int i = 0; i < kk; i++){
+        for (int j = 0; j < kk; j++){
+            if (nm[i][j].size() > 0){
+                for (int l = 0; l < n; l++){
+                    if (nm[i][j][l] != 0){
+                        if (nm[i][j][l] < 0){
+                            cout << "-";
+                        } else {
+                            cout << "+";
+                        }
+                        if (abs(nm[i][j][l]) != 1){
+                            cout << abs(nm[i][j][l]);
+                        }
+                        cout << "w" << l+1;
+                    }
+                }
+            } else {
+                cout << "0";
+            }
+            cout << " ";
+        }
+        cout << endl;
+    }
+
+    vector<vector<double> > d;
+    for (int i = 0; i < n; i++){
+        vector<double> v(n);
+        for (int j = 0; j < n; j++){
+            cin >> v[j];
+            //v[j] /= 2;
+        }
+        d.push_back(v);
+    }
+    vector<vector<vector<double> > > anm;
+    for (int i = 0; i < kk; i++){
+        vector<vector<double> > vv;
+        for (int j = 0; j < kk; j++){
+            vector<double> v;
+            if (nm[i][j].size() > 0){
+                v.resize(n);
+                fill(v.begin(), v.end(), 0);
+                for (int l = 0; l < n; l++){
+                    for (int t = 0; t < n; t++){
+                        v[l] += d[l][t]*nm[i][j][t];
+                    }
+                    v[l] = norm(v[l]);
+                }
+            }
+            vv.push_back(v);
+        }
+        anm.push_back(vv);
+    }
+    for (int i = 0; i < kk; i++){
+        for (int j = 0; j < kk; j++){
+            if (anm[i][j].size() > 0){
+                for (int l = 0; l < n; l++){
+                    if (anm[i][j][l] != 0){
+                        if (anm[i][j][l] < 0){
+                            cout << "-";
+                        } else {
+                            cout << "+";
+                        }
+                        if (abs(anm[i][j][l]) != 1){
+                            cout << (abs(anm[i][j][l]));
+                        }
+                        cout << "a" << l+1;
+                    }
+                }
+            } else {
+                cout << "0";
+            }
+            cout << " ";
+        }
+        cout << endl;
+    }
+    map<int, set<vector<double> > > mp;
+    for (int tt = 0; ; tt++){
+    vector<vector<vector<double> > > bnm = anm;
+    bool f = true;
+    vector<int> vv = {rand() % R - R/2 ,rand() % R - R/2 ,rand() % R - R/2 ,rand() % R - R/2 ,rand() % R - R/2 ,rand() % R - R/2 , 0};
+
+
+    /*double dou = -((double)(3*vv[1] + 4 *vv[2] + 6 *vv[3] + 5*vv[4]+4*vv[5]+3*vv[6]))/2;
+    if (abs(dou - (int)dou) < 0.0001){
+        vv[0] = round(dou);
+    } else {
+        vv[1]++;
+        vv[0] = round (dou + 0.5)+1;
+    }*/
+    for (int i = 0; i < n; i++){
+        cout << vv[i] << ", ";
+    }
+    cout << endl;
+    for (int i = 0; i < kk; i++){
+
+        if (!f){
+            break;
+        }
+        for (int j = 0; j < kk; j++){
+
+            if (!f){
+                break;
+            }
+            if (anm[i][j].size() > 0 && !(isZero(anm[i][j]))){
+                int sum = 0;
+                sum = vv[0]*(2*anm[i][j][0] - anm[i][j][2]) + vv[1]*(2*anm[i][j][1] - anm[i][j][3]) + vv[2]*(2*anm[i][j][2] - anm[i][j][0] - anm[i][j][3]) + vv[3]*(2*anm[i][j][3] - anm[i][j][1] - anm[i][j][2] - anm[i][j][4]) + vv[4]*(2*anm[i][j][4] - anm[i][j][3] - anm[i][j][5]) + vv[5]*(2*anm[i][j][5] - anm[i][j][4] - anm[i][j][6]);
+                if (sum == 0){
+                    cout << "Error" << endl;
+                    mp.clear();
+                    for (int l = 0; l < n; l++){
+                        if (anm[i][j][l] != 0){
+                            if (anm[i][j][l] < 0){
+                                cout << "-";
+                            } else {
+                                cout << "+";
+                            }
+                            if (abs(anm[i][j][l]) != 1){
+                                cout << abs(anm[i][j][l]);
+                            }
+                            cout << "a" << l+1;
+                        }
+                    }
+                    cout << endl;
+                    f = false;
+                    break;
+                } else if (sum < 0){
+                    bnm[i][j] = anm[i][j];
+                    for (int l = 0; l < bnm[i][j].size(); l++){
+                        bnm[i][j][l] *= -1;
+                    }
+                    mp[-sum].insert(bnm[i][j]);
+                } else {
+                    bnm[i][j] = anm[i][j];
+
+                    mp[sum].insert(bnm[i][j]);
+                }
+            }
+        }
+    }
+    if (f){
+        anm = bnm;
+
+        break;
+    }
+    }
+    cout << endl << endl;
+    vector<vector<double>> newPr;
+    for (pair<int, set<vector<double> > > p : mp){
+        if (newPr.size() == 7){
+            break;
+        }
+        for (vector<double> vvv : p.second){
+            if (newPr.size() == 7){
+                break;
+            }
+            newPr.push_back(vvv);
+        }
+    }
+
+    for (int i = 0; i < kk; i++){
+        for (int j = 0; j < kk; j++){
+            if (anm[i][j].size() > 0){
+                for (int l = 0; l < n; l++){
+                    if (anm[i][j][l] != 0){
+                        if (anm[i][j][l] < 0){
+                            cout << "-";
+                        } else {
+                            cout << "+";
+                        }
+                        if (abs(anm[i][j][l]) != 1){
+                            cout << abs(anm[i][j][l]);
+                        }
+                        cout << "a" << l+1;
+                    }
+                }
+            } else {
+                cout << "0";
+            }
+            cout << " ";
+        }
+        cout << endl;
+    }
+    cout << endl;
+    vector<vector<int> > newMarks;
+    for (int i = 0; i < kk; i++){
+        vector<int> vvv(kk);
+        fill(vvv.begin(), vvv.end(), -1);
+        for (int j = 0; j < kk; j++){
+            if (anm[i][j].size() > 0 && (isIn(anm[i][j], newPr) != -1)){
+                vvv[j] = isIn(anm[i][j], newPr);
+                cout << vvv[j] + 1;
+            } else {
+                cout << "0";
+            }
+            cout << " ";
+        }
+        newMarks.push_back(vvv);
+
+        cout << endl;
+    }
+    cout << endl;
+
+    for (int i = 0; i < kk; i++){
+        int cc = 0;
+        for (int j = 0; j < kk; j++){
+            if (newMarks[i][j] != -1){
+                cc ++;
+            }
+            if (newMarks[j][i] != -1){
+                cc ++;
+            }
+        }
+        cout << cc << " ";
+
+    }
+    cout << endl;
+
+    vector<vector<double> > mat;
+    for (int i = 0; i < n; i++){
+        vector<double> v;
+        for (int j = 0; j < n; j++){
+            double a;
+            cin >> a;
+            v.push_back(a);
+        }
+        mat.push_back(v);
+    }
+
+
+
+    cout << anm.size() << endl;
+    for (int i = 0; i < 17; i++){
+        cout << 0 << endl;
+    }
+
+    for (int i = 0; i < anm.size(); i++){
+        if (anm[17][i].size() > 0 && !isZero(anm[17][i])){
+            cout << "(";
+            vector<double> bb(n);
+            for (int j = 0; j < n; j++){
+                bb[j] = 0;
+                for (int l = 0; l < n; l++){
+                    bb[j] += mat[l][j]*anm[17][i][l];
+                }
+            }
+            truePrintVec(bb);
+            cout << ")";
+        }
+        if (anm[i][17].size() > 0 && !isZero(anm[i][17])){
+            cout << "(";
+            vector<double> bb(n);
+            for (int j = 0; j < n; j++){
+                bb[j] = 0;
+                for (int l = 0; l < n; l++){
+                    bb[j] += mat[l][j]*anm[i][17][l];
+                }
+            }
+            truePrintVec(bb);
+            cout << ")";
+        }
+    }
+    cout << endl;
+    for (int i = 18; i < anm.size(); i++){
+        cout << 0 << endl;
+    }
+    cc = 0;
+    for (int i = 0; i < anm.size(); i++){
+        for (int j = 0; j < anm.size(); j++){
+            if (anm[i][j].size() > 0 && !isZero(anm[i][j])){
+                cout << i+1 << " " << j+1 << " ";
+
+                vector<double> bb(n);
+                for (int t = 0; t < n; t++){
+                    bb[t] = 0;
+                    for (int l = 0; l < n; l++){
+                        bb[t] += mat[l][t]*anm[i][j][l];
+                    }
+                }
+                truePrintVec(bb);
+                cout << endl;
+                cc++;
+            }
+        }
+    }
+    cout << cc;
+    return 0;
+}
