@@ -1,0 +1,1361 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int N = 7;
+const long long MOD = 2;
+const long double eps = 0.0001;
+const int R = 2;
+
+const int MAXN = 100;
+
+int mult[MAXN];
+bool isDivided;
+int c[N][N], matr[N][N], minv[N][N];
+vector<int> e[MAXN][MAXN];
+
+long long modul(long long x, long long m){
+    long long y = x / m;
+    x -= y*m;
+    while (x < 0){
+        x += m;
+    }
+    return x;
+}
+
+long long modul(long long x){
+    return modul(x, MOD);
+}
+
+struct monom{
+    long long a;
+    vector<int> x;
+};
+
+monom createMon (){
+    struct monom mon;
+    mon.x.resize(N);
+    mon.a = 0;
+    for (int i = 0; i < N; i++){
+        mon.x[i] = 0;
+    }
+    return mon;
+}
+
+string chsToStr(char * s){
+    int n;
+    for (n = 0; s[n] != '\0'; n++);
+    string st;
+    st.resize(n);
+    for (int i = 0; i <= n; i++){
+        st[i] = s[i];
+    }
+    return st;
+}
+
+int step(monom mon){
+    int coun = 0;
+    for (int i = 0; i < N; i++){
+        coun += mon.x[i];
+    }
+    return coun;
+}
+
+void printVec(vector<int> v){
+    for (int i = 0; i < v.size(); i++){
+        cout << v[i] << " ";
+    }
+    cout << endl;
+}
+
+void printMonom(monom mon){
+	cout << mon.a << ' ';
+    for (int k = 0; k < N; k++){
+        cout << mon.x[k] << ' ';
+    }
+}
+
+void printPolinom (vector<monom> polinom){
+	for (int j = 0; j < polinom.size(); j++){
+            monom mon = polinom[j];
+            printMonom(mon);
+
+    }
+    cout << endl;
+
+}
+
+void printPolinom (vector<vector<monom> > polinom){
+	for (int j = 0; j < polinom.size(); j++){
+            printPolinom(polinom[j]);
+
+    }
+    cout << endl;
+
+}
+
+bool ff = false;
+
+int pods (monom mon, vector<int> v){
+    int ans = mon.a;
+    for (int i = 0; i < N; i++){
+        ans *= pow(v[i], mon.x[i]);
+        ans = modul(ans, MOD);
+    }
+    return ans;
+}
+
+int pods (vector<monom> a, vector<int> v){
+    int sum = 0;
+    for (int i = 0; i < a.size(); i++){
+        sum += pods(a[i], v);
+        sum = modul(sum, MOD);
+    }
+    if (ff){
+        cout << sum << endl;
+    }
+    return sum;
+}
+
+int pods(vector<vector<monom>> a, vector<int> v){
+    if (a.size() == 0){
+        return 0;
+    }
+    int ans = 1;
+    for (int i = 0; i < a.size(); i++){
+        ans *= pods(a[i], v);
+        ans = modul(ans, MOD);
+        if (ff){
+            cout <<"@" << ans << endl;
+        }
+    }
+    return ans;
+}
+
+bool isDiffDiv(vector<vector<monom> > a, vector<vector<monom> > b, vector<int> d){
+    int m = -1;
+    for (int i = 0; i < N; i++){
+        if (d[i] != 0){
+            m = i;
+            break;
+        }
+    }
+    if (m == -1 || abs(d[m]) != 1){
+        cout << "Error 16" << endl;
+        printVec(d);
+    }
+    for (int t = 0; t < 128; t++){
+        vector<int> aa(N);
+        int y = t;
+        for (int i = 0; i < N; i++){
+            aa[i] = y % 2;
+            y /= 2;
+        }
+
+        int sum = 0;
+        for (int i = 0; i < N; i++){
+            if (i != m){
+                sum += aa[i]*d[i];
+            }
+        }
+        aa[m] = -sum;
+        if (pods(a, aa) - pods (b, aa) != 0){
+            printVec(d);
+            printVec(aa);
+            ff = true;
+            cout << pods(a, aa) << endl << "!" << endl << pods(b, aa) << endl;
+            ff = false;
+            return false;
+        }
+    }
+    return true;
+}
+
+int skal(vector<int> vv, vector<int> a){
+    return vv[0]*(2*a[0] - a[2]) + vv[1]*(2*a[1] - a[3]) + vv[2]*(2*a[2] - a[0] - a[3]) + vv[3]*(2*a[3] - a[1] - a[2] - a[4]) + vv[4]*(2*a[4] - a[3] - a[5]) + vv[5]*(2*a[5] - a[4] - a[6]) + vv[6] *(2*a[6] - a[5]);
+}
+
+vector<int> atob (vector<int> v){
+    vector<int> ans(N);
+    for (int i = 0; i < N; i++){
+        ans[i] = 0;
+        for (int j = 0; j < N; j++){
+            ans[i] += minv[j][i]*v[j];
+        }
+    }
+    return ans;
+}
+
+vector<int> btoa (vector<int> v){
+    vector<int> ans(N);
+    for (int i = 0; i < N; i++){
+        ans[i] = 0;
+        for (int j = 0; j < N; j++){
+            ans[i] += matr[j][i]*v[j];
+        }
+    }
+    return ans;
+}
+
+int step (vector<monom> polinom){
+    if (polinom.size() == 0){
+        return 0;
+    }
+    int stp = step(polinom[0]);
+    for (int i = 0; i < polinom.size(); i++){
+        if (stp != step(polinom[i])){
+            cout << "Error 13" << endl;
+            printPolinom(polinom);
+            return stp;
+        }
+    }
+    return stp;
+}
+
+vector<string> split (string s){
+    int i = 0;
+    int k = 1;
+    vector<string> mons;
+    while (i < s.length()){
+        string mon;
+        while (s[i] != '+' && s[i] != '-' && i < s.length()&& s[i] != '('){
+            mon.push_back(s[i]);
+            i++;
+        }
+        while (s[i] == '('){
+        	while (s[i] != ')'){
+        		mon.push_back(s[i]);
+        		i++;
+        	}
+        	mon.push_back(s[i]);
+        	i++;
+        }
+
+        if (s[i] == '+'){
+        	mult[k] = 1;
+        } else {
+        	mult[k] = -1;
+        }
+        k++;
+        mons.push_back(mon);
+        i++;
+    }
+    return mons;
+}
+
+bool check(vector<monom> polinom){
+    if (polinom.size() == 0){
+        return true;
+    }
+    int stp = step(polinom[0]);
+    for (int i = 0; i < polinom.size(); i++){
+        if (stp != step(polinom[i])){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool check(vector<vector<monom> > polinom){
+    for (int i = 0; i < polinom.size(); i++){
+        if (!check(polinom[i])) return false;
+    }
+    return true;
+}
+
+monom strToMonom(string monInStr, int t){
+	long long a = 0;
+            int i = 0;
+            while (monInStr[i] != 'a' && i < monInStr.length()){
+                a *= 10;
+                //a = modul(a,MOD);
+                a += monInStr[i]-'0';
+                //a = modul(a,MOD);
+                i++;
+            }
+            if (a == 0) a = 1;
+            a *= mult[t];
+            //cout << a << endl;
+            struct monom mon = createMon();
+            //cout << i << "! " << monInStr[i];
+            mon.a = a;//modul(a,MOD);
+            while (i < monInStr.length()){
+                if (monInStr[i] == 'a'){
+                    mon.x[monInStr[i+1] - '1']++;
+                } else {
+                    cout << "Error 1 "<< i << " !" << monInStr.size();
+                    cout << monInStr << endl;
+                }
+                i+=2;
+
+            }
+    return mon;
+}
+
+monom monXint(monom mon, int x){
+	mon.a *= x;
+	//mon.a = modul(mon.a,MOD);
+	return mon;
+}
+
+vector<monom> monXint(vector<monom> mon, int x){
+	for (int i = 0; i < mon.size(); i++){
+        mon[i] = monXint(mon[i], x);
+    }
+    return mon;
+}
+vector<vector<monom> > neMonXint(vector<vector<monom> > mon, int x){
+	for (int i = 0; i < mon.size(); i++){
+        mon[i] = monXint(mon[i], x);
+    }
+    return mon;
+}
+
+
+vector<int> vCl(int n){
+	vector<int> v(n);
+	fill(v.begin(), v.end(), 0);
+	return v;
+}
+
+vector<double> vcl(int n){
+	vector<double> v(n);
+	fill(v.begin(), v.end(), 0);
+	return v;
+}
+
+vector<int> vecXint(vector<int> v, int x){
+    for (int i = 0; i < v.size(); i++){
+        v[i] *= x;
+    }
+    return v;
+}
+
+bool isEqual(vector<int> a, vector<int> b){
+	if (a.size() != b.size()){
+		cout << "Smth strange" << endl;
+		printVec(a);
+		cout << " " << a.size() << " ";
+		printVec(b);
+		cout << " " << b.size() << endl;
+		return false;
+	}
+	for (int i = 0; i < a.size(); i++){
+		if (a[i] != b[i]){
+			return false;
+		}
+	}
+	return true;
+}
+
+bool isEqualXn(vector<int> a, vector<int> b){
+    if (a.size() != b.size()){
+		cout << "Smth strange" << endl;
+		printVec(a);
+		cout << " " << a.size() << " ";
+		printVec(b);
+		cout << " " << b.size() << endl;
+		return false;
+	}
+	if ((a[0] == 0 && b[0] != 0) || (a[0] != 0 && b[0] == 0)){
+        return false;
+    }
+	double d = ((double)a[0]) / b[0];
+	for (int i = 0; i < a.size(); i++){
+		if ((a[i] == 0 && b[i] != 0) || (a[i] != 0 && b[i] == 0)){
+			return false;
+		}
+		double c = ((double)a[i]) / b[i];
+		if (abs(c - d) > eps) {
+            return false;
+		}
+	}
+	return true;
+}
+
+
+bool isEqual0(vector<int> a){
+	return isEqual(a, vCl(a.size()));
+}
+
+vector<monom> simplify (vector<monom> polinom){
+	map<vector<int>, vector<long long>> m;
+	for (int l = 0; l < polinom.size(); l++){
+		monom temp = polinom[l];
+
+		m[temp.x].push_back(temp.a);
+	}
+	vector<monom> ans;
+	for (pair<vector<int>, vector<long long>> p: m){
+        monom mon = createMon();
+        mon.x = p.first;
+        for (int i = 0; i < p.second.size(); i++){
+            mon.a += p.second[i];
+        }
+        mon.a = modul(mon.a,MOD);
+
+        if (abs(mon.a) >0.001){
+            ans.push_back(mon);
+        }
+	}
+	return ans;
+}
+
+vector<vector<monom> > simplify(vector<vector<monom> > polinom){
+    vector<vector<monom> > ans;
+    for (int i = 0; i < polinom.size(); i++){
+        ans.push_back(simplify(polinom[i]));
+    }
+    return ans;
+}
+
+bool isEqual(monom a, monom b){
+    if (a.a != b.a){
+        return false;
+    }
+    return isEqual(a.x, b.x);
+}
+
+bool isEqual(vector<monom> a, vector<monom> b){
+	a = simplify(a);
+	b = simplify(b);
+
+	if (a.size() != b.size()){
+		return false;
+	}
+	vector<bool> used(b.size());
+	fill(used.begin(), used.end(), false);
+
+    for (int i = 0; i < a.size(); i++){
+        bool f = false;
+        for (int j = 0; j < b.size(); j++){
+            if (!used[j] && isEqual(a[i], b[j])){
+                f = true;
+                used[j] = true;
+                break;
+            }
+        }
+        if (!f){
+            return false;
+        }
+    }
+	return true;
+}
+
+vector<monom> multiply (vector<monom> a, vector<monom> b){
+
+	vector<monom> ans;
+	if (a.size() == 0){
+		return ans;
+	}
+	if (b.size() == 0){
+		return ans;
+	}
+	for (int i = 0; i < a.size(); i++){
+		for (int j = 0; j < b.size(); j++){
+			monom mon = createMon();
+			mon.a = a[i].a*b[j].a;
+			//mon.a = modul(mon.a,MOD);
+			for (int k = 0; k < N; k++){
+				mon.x[k] = a[i].x[k]+b[j].x[k];
+
+			}
+			ans.push_back(mon);
+		}
+	}
+	return simplify(ans);
+}
+
+vector<monom> vtom (vector<int> v){
+    vector<monom> polinom;
+    for (int i = 0; i < N; i++){
+        monom mon = createMon();
+        mon.x[i] = 1;
+        mon.a = v[i];
+        polinom.push_back(mon);
+    }
+    return polinom;
+}
+
+
+vector<int> mtov(vector<monom> polinom){
+    if (step(polinom) != 1){
+        cout << "Error 15" << endl;
+    }
+    vector<int> ans = vCl(N);
+    for (int i = 0; i < polinom.size(); i++){
+        int x = 0;
+        for (int j = 0; j < N; j++){
+            x += polinom[i].x[j]*j;
+        }
+        ans[x] += polinom[i].a;
+    }
+    return ans;
+}
+
+map <pair<int, int>, vector<monom>> fastStep;
+
+vector<monom> oldSymmetrize(monom mon, vector<int> mark){
+	int m = 0;
+	for (int i = 0; i < N; i++){
+		m += mark[i]*i;
+	}
+	if (m >= N){
+		cout << "Error 6";
+		exit;
+	}
+
+	vector<monom> ans;
+	monom ed = createMon();
+	ed.a = 1;
+	ans.push_back(ed);
+
+	for (int i = 0; i < N; i++){
+            if (mon.x[i] == 0){
+                continue;
+            }
+			vector<monom> polinom;
+			monom monn = createMon();
+			monn.x[i] = 1;
+			monn.a = 1;
+            polinom.push_back(monn);
+			monn.x[i] = 0;
+			monn.x[m] = 1;
+			monn.a = -c[i][m];
+			//monn.a = modul(monn.a,MOD);
+
+			if (monn.a != 0)
+                polinom.push_back(monn);
+
+        for (int j = 0; j < mon.x[i]; j++){
+		    ans = multiply(ans, polinom);
+		}
+	}
+	for (int i = 0; i < ans.size(); i++){
+        ans[i].a *= mon.a;
+	}
+	return ans;
+
+}
+
+vector<monom> symmetrize(monom mon, vector<int> mark){
+	int m = 0;
+	for (int i = 0; i < N; i++){
+		m += mark[i]*i;
+	}
+	if (m >= N){
+		cout << "Error 6";
+		exit;
+	}
+
+	vector<monom> ans;
+	monom ed = createMon();
+	ed.a = 1;
+	ans.push_back(ed);
+
+	for (int i = 0; i < N; i++){
+        if (mon.x[i] == 0){
+            continue;
+        }
+        pair<int, int> p = {i, mon.x[i]};
+        while (fastStep[p].empty() && p.second > 0){
+            p.second--;
+        }
+        vector<monom> polinom;
+        if (p.second == 0){
+			monom monn = createMon();
+			monn.x[i] = 1;
+			monn.a = 1;
+            polinom.push_back(monn);
+			monn.x[i] = 0;
+			monn.x[m] = 1;
+			monn.a = -c[i][m];
+			//monn.a = modul(monn.a,MOD);
+
+			if (monn.a != 0)
+                polinom.push_back(monn);
+
+            p.second = 1;
+            polinom = simplify(polinom);
+            fastStep[p] = polinom;
+        } else {
+            pair<int, int> q = {i, 1};
+            polinom = fastStep[q];
+        }
+        vector<monom> tec = fastStep[p];
+        p.second++;
+		for (; p.second <= mon.x[i]; p.second++){
+			tec = multiply(tec, polinom);
+			tec = simplify (tec);
+			fastStep[p] = tec;
+		}
+		ans = multiply (ans, tec);
+		ans = simplify (ans);
+	}
+	for (int i = 0; i < ans.size(); i++){
+        ans[i].a *= mon.a;
+	}
+	return ans;
+
+}
+vector<monom> symmetrize(vector<monom> polinom, vector<int> mark){
+    vector<monom> ans;
+    fastStep.clear();
+    for (int i = 0; i < polinom.size(); i++){
+        vector<monom> tec = symmetrize(polinom[i], mark);
+
+        for (int j = 0; j < tec.size(); j++){
+            ans.push_back(tec[j]);
+        }
+    }
+    if (polinom.size() == -1){
+        cout << "!@#$@#$" << endl;
+        printPolinom(polinom);
+        printPolinom(ans);
+        printPolinom(simplify(ans));
+    }
+    if (!check(ans)){
+            printMonom(polinom[0]);
+            cout << endl;
+            printPolinom(symmetrize(polinom[0], mark));
+            printMonom(polinom[1]);
+            cout << endl;
+            printPolinom(symmetrize(polinom[1], mark));
+            printVec(mark);
+            cout << endl;
+            while(true);
+        }
+    return ans;
+}
+
+vector<vector<monom> > symmetrize(vector<vector<monom> > polinom, vector<int> mark){
+    vector<vector<monom> > ans;
+    for (int i = 0; i < polinom.size(); i++){
+        ans.push_back(simplify(symmetrize(polinom[i], mark)));
+    }
+    return ans;
+}
+
+
+/*vector<monom> divide (vector<monom> polinom, vector<int> mark, int m){
+	vector<monom> ans;
+    if (polinom.size() == 0){
+		return ans;
+	}
+
+	int i = 0;
+	while (i < polinom.size() && (polinom[i].x[m] == 0 || abs(polinom[i].a)) < 0.001){
+		i++;
+	}
+	cout << i << " " << polinom[i].a << endl;
+	if (i == polinom.size()){
+		isDivided = false;
+
+		return ans;
+
+	} else {
+		monom temp = polinom[i];
+		for (int j = 0; j < N; j++){
+			monom tem = polinom[i];
+			tem.x[m] --;
+			tem.x[j] ++;
+			tem.a *= -((long long)mark[j]) / mark[m];
+            tem.a = modul(tem.a,MOD);
+            polinom.push_back(tem);
+		}
+		polinom = simplify(polinom);
+		temp.x[m] --;
+		ans = divide (polinom, mark, m);
+		ans.push_back(temp);
+		ans = simplify(ans);
+		return ans;
+	}
+	cout << "fine";
+	return ans;
+}*/
+
+vector<monom> divide (vector<monom> polinom, int m){
+    polinom = simplify(polinom);
+	for (int i = 0; i < polinom.size(); i++){
+        if (polinom[i].x[m] == 0){
+            isDivided = false;
+
+        }
+        polinom[i].x[m]--;
+    }
+
+	return polinom;
+}
+
+vector<monom> divide (vector<monom> polinom, vector<int> mark){
+	isDivided = true;
+
+	int m = -1, i = N-1;
+	while (i >= 0){
+		if (mark[i] != 0){
+			m = i;
+			break;
+		}
+		i--;
+	}
+	if (m == -1){
+		cout << "Error 4";
+	}
+
+
+	return divide(polinom, m);
+}
+
+vector<vector<monom> > divide (vector<vector<monom> > polinom, int m) {
+    isDivided = true;
+    for (int i = 0; i < polinom.size(); i++){
+        isDivided = true;
+        vector<monom> div = divide(polinom[i], m);
+        if (div.size() == 1 && div[0].x == vCl(N)){
+            if (div[0].a != 1){
+                if (polinom.size() == 1){
+                    polinom.erase(polinom.begin()+i, polinom.begin() + i + 1);
+                    polinom.push_back(div);
+                    return polinom;
+                } else {
+                    if (i != 0){
+                        for (int j = 0; j < polinom[0].size(); j++){
+                            polinom[0][j].a *= div[0].a;
+                        }
+                        polinom.erase(polinom.begin()+i, polinom.begin() + i + 1);
+                        return polinom;
+                    } else {
+                        for (int j = 0; j < polinom[1].size(); j++){
+                            polinom[1][j].a *= div[0].a;
+                        }
+                        polinom.erase(polinom.begin()+i, polinom.begin() + i + 1);
+                        return polinom;
+                    }
+                }
+            }
+            if (!isDivided){
+                cout << "Error 11 " << endl;
+                return polinom;
+            }
+            polinom.erase(polinom.begin()+i, polinom.begin() + i + 1);
+            if (polinom.size() == 0){
+                polinom.push_back(div);
+            }
+            return polinom;
+
+        }
+        if (isDivided){
+            polinom.erase(polinom.begin()+i, polinom.begin() + i + 1);
+            polinom.push_back(div);
+            return polinom;
+        }
+    }
+    return polinom;
+}
+
+
+vector<vector<monom> > divide (vector<vector<monom> > polinom, vector<int> mark){
+    isDivided = true;
+    int m = -1, i = N-1;
+	while (i >= 0){
+		if (mark[i] != 0){
+			m = i;
+			break;
+		}
+		i--;
+	}
+	if (m == -1){
+		cout << "Error 4";
+	}
+	return divide(polinom, m);
+}
+
+vector<vector<monom> > calculate (string monInStr){
+    if (monInStr.size() == 0){
+		vector<vector<monom> > polinom;
+		return polinom;
+	}
+	vector<monom> firPolinom;
+	int i = 2;
+	int sign = 1;
+	if (monInStr[1] == '-'){
+        sign = -1;
+	} else if (monInStr[1] == '+'){
+        sign = 1;
+	} else {
+	    cout << monInStr << endl;
+        cout << "Error 12" << endl;
+	}
+	//cout << "!" << monInStr << endl;
+	while (monInStr[i] != ')'){
+		string firMon;
+	    while (monInStr[i] != '+' && monInStr[i] != '-' && monInStr[i] != ')' && monInStr[i] != '('){
+    		firMon.push_back(monInStr[i]);
+    		i++;
+    	}
+    	if (firMon.length() != 0){
+    	if (monInStr[i] == '('){
+    		cout << "Error 2";
+    	}
+    	firPolinom.push_back(monXint(strToMonom(firMon, 0), sign));
+    	if (monInStr[i] == '-'){
+    		sign = -1;
+    	} else {
+    		sign = 1;
+    	}
+    	if (monInStr[i] == ')') break;
+    	}
+    	i++;
+	}
+	vector<vector<monom> > polinom = calculate(monInStr.substr(i+1, monInStr.size()));
+    polinom.push_back(firPolinom);
+
+    return polinom;
+
+    //return polinom;
+}
+
+vector<int> strToVec(string s){
+	vector<int> v = vCl(N);
+	for (int i = 0; i < s.length(); i++){
+		if (s[i] == 'a'){
+			if (s[i-2] == '+' || s[i-3] == '+'){
+				v[s[i+1]-'1'] += s[i-1] - '0';
+			} else if (s[i-2] == '-' || s[i-3] == '-'){
+				v[s[i+1]-'1'] -= s[i-1] - '0';
+			} else {
+				cout << "Error 5" << endl;
+				cout << s << endl;
+			}
+		}
+	}
+	return v;
+}
+
+bool isPrime(vector<int> m){   //onlypus or only minus
+    if (m.size() == 0){
+        return false;
+    }
+    bool f = false;
+    for (int i = 0; i < m.size(); i++){
+        if (f && m[i] != 0) return false;
+        if (m[i] != 0) f = true;
+    }
+    return true;
+}
+
+int used[MAXN];
+
+void dfs(int x, int t){
+    if (used[x] > t+1 || used[x] == 0){
+        used[x] = t+1;
+        for (int i = 0; i < MAXN; i++){
+            if (e[x][i].size() > 0 && isPrime(e[x][i])){
+                dfs(i, t+1);
+            }
+        }
+    }
+}
+
+vector<vector<monom> > dPolinom (vector<vector<monom> > a, vector<vector<monom> > b){
+    vector<vector<monom> > ans, c = b;
+    a = simplify(a);
+    b = simplify(b);
+    /*printPolinom(a);
+    printPolinom(b);
+    */
+    if (b.size() == 0){
+        return a;
+    }
+    if (a.size() == 0){
+        b[0] = monXint(b[0], -1);
+        return b;
+    }
+	//cout << "##" << a.size() <<  b.size() << endl;
+    vector<bool> used(b.size());
+	fill(used.begin(), used.end(), false);
+
+    for (int i = 0; i < a.size(); i++){
+        bool f = false;
+        for (int j = 0; j < b.size(); j++){
+            if (!used[j] && isEqual(a[i], b[j])){
+                f = true;
+                used[j] = true;
+                ans.push_back(a[i]);
+                a.erase(a.begin() + i, a.begin() + i + 1);
+                i--;
+                break;
+            }
+        }
+
+    }
+    for (int i = b.size() - 1; i >= 0; i--){
+        if (used[i]){
+            b.erase(b.begin() + i, b.begin() + i + 1);
+        }
+    }
+    if (a.size() == 0){
+        monom ed = createMon();
+        ed.a = 1;
+        vector<monom> ped;
+        ped.push_back(ed);
+        a.push_back(ped);
+    }
+    if (b.size() == 0){
+        monom ed = createMon();
+        ed.a = 1;
+        vector<monom> ped;
+        ped.push_back(ed);
+        b.push_back(ped);
+    }
+    int sgn = 1;
+    fill(used.begin(), used.end(), false);
+    b = neMonXint(b, -1);
+    for (int i = 0; i < a.size(); i++){
+        bool f = false;
+        for (int j = 0; j < b.size(); j++){
+            if (!used[j] && isEqual(a[i], b[j])){
+                f = true;
+                used[j] = true;
+                ans.push_back(a[i]);
+                a.erase(a.begin() + i, a.begin() + i + 1);
+                i--;
+                break;
+            }
+        }
+
+    }
+    for (int i = b.size() - 1; i >= 0; i--){
+        if (used[i]){
+            sgn *= -1;
+            b.erase(b.begin() + i, b.begin() + i + 1);
+        }
+    }
+    if (a.size() == 0){
+        monom ed = createMon();
+        ed.a = 1;
+        vector<monom> ped;
+        ped.push_back(ed);
+        a.push_back(ped);
+    }
+    if (b.size() == 0){
+        monom ed = createMon();
+        ed.a = 1;
+        vector<monom> ped;
+        ped.push_back(ed);
+        b.push_back(ped);
+    }
+    b = neMonXint(b, -1);
+    /*cout << "@@@@" << endl;
+    printPolinom(a);
+    printPolinom(b);
+    */vector<monom> polinom, polinom2;
+    monom mon = createMon();
+    mon.a = 1;
+    polinom.push_back(mon);
+    polinom2 = polinom;
+
+    for (int i = 0; i < a.size(); i++){
+        polinom = multiply(polinom, a[i]);
+        int stp = step(polinom[0]);
+        for (int j = 0; j < polinom.size(); j++){
+            if (stp != step(polinom[j])){
+                cout << "^^" << endl;
+                stp = step(polinom[j]);
+                for (int l = 0; l < a[i].size(); l++){
+                    cout << step(a[i][l]) << " ";
+                }
+                cout << endl;
+                for (int l = 0; l < polinom.size(); l++){
+                    cout << step(polinom[l]) << " ";
+                }
+                cout << endl;
+            }
+        }
+        //cout << "now 1 " << i << endl;
+    }
+
+    for (int i = 0; i < b.size(); i++){
+        polinom2 = multiply(polinom2, b[i]);
+        int stp = step(polinom2[0]);
+        for (int j = 0; j < polinom2.size(); j++){
+            if (stp != step(polinom2[j])){
+
+                while(true);
+                cout << "^^^" << endl;
+                /*for (int l = 0; l < b[i].size(); l++){
+                    cout << step(b[i][l]) << " ";
+                }
+                cout << endl;
+                for (int l = 0; l < polinom2.size(); l++){
+                    cout << step(polinom2[l]) << " ";
+                }*/
+                printPolinom(b[i]);
+                stp = step(polinom2[j]);
+                cout << endl;
+            }
+        }
+        //cout << "now 2 " << i << endl;
+    }
+    for (int i = 0; i < polinom2.size(); i++){
+        polinom.push_back(monXint(polinom2[i], -sgn));
+    }
+    vector<monom> pol = simplify(polinom);
+    if (pol.size() == 0){
+        vector<vector<monom> > ans0;
+        return ans0;
+    }
+    ans.push_back(pol);
+    return ans;
+}
+
+long long lldRound(long long x){
+    if (x - (long long)x < 0.5){
+        return (long long)x;
+    } else {
+        return (long long)x + 1;
+    }
+}
+
+int diffGraph(FILE * fin, FILE * fout, string s, int ppp){
+	mult[0] = 1;
+	//cout << ppp << " " << s << endl;
+	for (int i = 1; i < MAXN; i++){
+        mult[i] = 0;
+	}
+    int n = 0, m = 0;
+    string st;
+    fscanf(fin, "%d%d", &n, &m);
+    //cout << n << " " << m;
+    vector<vector<vector<monom> > > v(n);
+
+    for (int k = 0; k < n; k++){
+        char st[1000000];
+        fscanf(fin, "%s", &st);
+        string s = chsToStr(st);
+        //cout << s;
+        if (s == "0"){
+        	continue;
+        }
+        vector<string> mons = split (s);
+
+        for (int t = 0; t < mons.size(); t++){
+            string monInStr = mons[t];
+			//cout << endl << monInStr<< endl;
+            if (monInStr[0] == '('){
+        		vector<vector<monom> > polinom = calculate(monInStr);
+        		polinom = simplify(polinom);
+
+        		for (int j = 0; j < polinom.size(); j++){
+    		  		vector<monom> pol = monXint(polinom[j], mult[t]);
+
+    		  		if (pol.size() != 0){
+
+                        v[k].push_back(pol);
+    		  		}
+        		}
+			}
+            else {
+            	cout << "Error 7" << endl;
+            	exit;
+            	//v[k].push_back(strToMonom(monInStr, t));
+            }
+        }
+    }
+    vector<int> mark;
+    for (int t = 0; t < 1; t++){
+    	fprintf(fout, "%d %d\n", n, m);
+        mark = strToVec(s);
+        vector<vector<vector<monom> > > newv;
+        bool isExact;
+		for (int i = 0; i < n; i++){
+            //fprintf(fout, "%d ", i);
+            //cout << "Now at " << i << endl;
+			int vert = -1;
+			for (int j = 0; j < n; j++){
+				if (e[i][j].size() > 0 && (isEqual(e[i][j], mark) || isEqualXn(e[i][j], mark))){
+					vert = j;
+					break;
+				}
+			}
+			isDivided = true;
+            //cout << i << " " << vert;
+			if (vert == -1){
+				if (!check(v[i])){
+                    while(true){
+                        cout << "!@#";
+                    }
+                }
+				vector<vector<monom> > polinom = dPolinom(v[i], symmetrize(v[i], mark));
+				polinom = simplify(polinom);
+
+				newv.push_back(divide(polinom, mark));
+                if (!isDivided){
+
+                    cout << endl << endl << "1Not divided " << i+1 << " and " << vert+1 << endl;
+                    printPolinom(v[i]);
+                    printPolinom(symmetrize(v[i], mark));
+                    cout << "!" << endl;
+                    printPolinom(polinom);
+                    cout << "!" << endl << endl;
+                    return 1;
+                }
+			} else {
+                if (!check(v[i])){
+                    while(true){
+                        cout << "!@#";
+                    }
+                }
+
+                vector<vector<monom> > polinom = dPolinom(v[i], symmetrize(v[vert], mark));
+				polinom = simplify(polinom);
+
+				newv.push_back(divide(polinom, mark));
+				if (!isDivided){
+
+                    cout << endl << endl << "2Not divided " << i+1 << " and " << vert+1 << endl;
+                    printPolinom(v[i]);
+                    printPolinom(symmetrize(v[vert], mark));
+                    cout << "!" << endl;
+                    printPolinom(polinom);
+                    cout << "!" <<endl << endl;
+                    printPolinom(divide(polinom, mark));
+                    //return 1;
+
+                }
+            }
+
+		}
+
+		for (int l = 0; l < n; l++){
+
+
+			for (int i = 0; i < newv[l].size(); i++){
+                for (int j = 0; j < newv[l][i].size(); j++){
+                    newv[l][i][j].a %= MOD;
+                }
+
+			}
+            newv[l] = simplify(newv[l]);
+			vector<vector<monom> > pol = newv[l];
+			if (pol.size() == 0){
+				fprintf (fout, "0");
+			} else {
+			    for (int i = 0; i < pol.size(); i++){
+                vector<monom> polinom = pol[i];
+				if (polinom.size() == 1 && polinom[0].a == 1 && polinom[0].x[0] == 0 && polinom[0].x[1] == 0 && polinom[0].x[2] == 0 && polinom[0].x[3] == 0 && polinom[0].x[4] == 0 && polinom[0].x[5] == 0 && polinom[0].x[6] == 0) {
+					continue;
+				}
+                fprintf (fout, "(");
+                bool isMultiplied = false;
+				/*for (int j = 0; j < N; j++){
+					for (int l = j+1; l < N; l++){
+						isDivided = true;
+						vector<int> vv = vCl(N);
+						vv[j]++;
+						vv[l]--;
+						divide (polinom, vv);
+						if (isDivided){
+							isMultiplied = true;
+							cout << "(" << 'a' << j + 1 << "-" << 'a' << l + 1 << ")";
+							polinom = divide (polinom, vv);
+							l--;
+						}
+					}
+				}*/
+				if (polinom.size() == 1 && polinom[0].a == 1 && polinom[0].x[0] == 0 && polinom[0].x[1] == 0 && polinom[0].x[2] == 0 && polinom[0].x[3] == 0 && polinom[0].x[4] == 0 && polinom[0].x[5] == 0 && polinom[0].x[6] == 0) {
+					/*if (!isMultiplied){
+						fprintf(fout, "1");
+					}*/
+
+				} else {
+					if (isMultiplied) fprintf(fout, "(");
+
+					for (int j = 0; j < polinom.size(); j++){
+						if (polinom[j].a < 0){
+							fprintf(fout, "-");
+						}
+						if (polinom[j].a > 0){
+							fprintf(fout, "+");
+						}
+						if (abs(polinom[j].a) < eps){
+							fprintf(fout, "Error 3\n");
+						}
+                        fprintf(fout, "%lld", abs(polinom[j].a));
+
+						bool isOne = true;
+						for (int k = 0; k < N; k++){
+							if (polinom[j].x[k] != 0) {
+								isOne = false;
+								for (int l = 0; l < polinom[j].x[k]; l++){
+                                    fprintf(fout, "a%d", k+1);
+								}
+							}
+						}
+					}
+					if (isMultiplied) fprintf(fout, ")");
+				}
+			fprintf(fout, ")");
+			}
+			}
+			fprintf(fout, "\n");
+		}
+		v = newv;
+    }
+
+    //cout << '!';
+    /*for (int i = 0; i < n; i++){
+        for (int j = 0; j < v[i].size(); j++){
+            monom mon = v[i][j];
+            cout << mon.a << ' ';
+            for (int k = 0; k < N; k++){
+                cout << mon.x[k] << ' ';
+            }
+        }
+        cout << endl;
+    }*/
+    /*for (int i = 0; i < n; i++){
+        for (int j = 0; j < n; j++){
+            if (e[i][j].size() > 0 && isPrime(e[i][j])){
+                bool f = true;
+                f = isDiffDiv(v[i], v[j], e[i][j]);
+                if (!f){
+                    cout << i << " !@# " << j << endl;
+                    printPolinom(v[i]);
+                    printPolinom(v[j]);
+                    //printPolinom(pol);
+                    cout << "Error 14" << endl;
+                }
+            }
+        }
+    }*/
+    cout << "END";
+    return 0;
+}
+
+int main(){
+    mult[0] = 1;
+	freopen("iput.txt", "r", stdin);
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < N; j++){
+			int a;
+			cin >> c[i][j];
+		}
+	}
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < N; j++){
+			int a;
+			cin >> matr[i][j];
+		}
+	}
+	for (int i = 0; i < N; i++){
+		for (int j = 0; j < N; j++){
+			int a;
+			cin >> minv[i][j];
+		}
+	}
+    int n, m;
+    cin >> n >> m;
+    vector<vector<vector<monom> > > v(n);
+
+    for (int k = 0; k < n; k++){
+        string s;
+        cin >> s;
+        if (s == "0"){
+        	continue;
+        }
+        vector<string> mons = split (s);
+
+        for (int t = 0; t < mons.size(); t++){
+            string monInStr = mons[t];
+			//cout << endl << monInStr<< endl;
+            if (monInStr[0] == '('){
+        		vector<vector<monom> > polinom = calculate(monInStr);
+        		polinom = simplify(polinom);
+
+        		for (int j = 0; j < polinom.size(); j++){
+    		  		vector<monom> pol = monXint(polinom[j], mult[t]);
+    		  		if (pol.size() != 0){
+                        v[k].push_back(pol);
+    		  		}
+        		}
+			}
+            else {
+            	cout << "Error 7" << endl;
+            	exit;
+            	//v[k].push_back(strToMonom(monInStr, t));
+            }
+        }
+    }
+    for (int i = 0; i < m; i++){
+        int a, b;
+        string s;
+        cin >> a >> b >> s;
+        vector<int> v = strToVec(s);
+        //cout << a << b << s;
+        e[a-1][b-1] = v;
+        e[b-1][a-1] = vecXint(v, -1);
+    }
+
+    vector<vector<int> > oe;
+      for (int i = 0; i < n; i++){
+        vector<int> v(n);
+        for (int j = 0; j < n; j++){
+            cin >> v[j];
+        }
+        oe.push_back(v);
+    }
+    dfs(17, 0);
+    for (int i = 0; i < n; i++){
+        cout << used[i] << " ";
+    }
+    cout << endl;
+    for (int t = 2; t < n; t++){
+        for (int i = 0; i < n; i++){
+        if (used[i] == t){
+        char s[13] = {'t','o','P','o','i','n','t','0','0','.','t','x','t'};
+        s[13] = '\0';
+        s[7] = i / 10 + '0';
+        s[8] = i % 10 + '0';
+        s[13] = '\0';
+        FILE * fout = fopen(s, "w");
+        //fprintf(fout, "1");
+        int l = -1;
+        for (int j = 0; j < n; j++){
+            if (used[j] == used[i] - 1 && e[i][j].size() > 0 && isPrime(e[i][j])){
+        //        cout << oe[j][i] << "@" << endl;
+                l = j;
+                break;
+            }
+        }
+        cout << i << " " << l << endl;
+        if (l == -1){
+            cout << i << "Error 8";
+        }
+        char s1[13] = {'t','o','P','o','i','n','t','0','0','.','t','x','t'};
+        s1[13] = '\0';
+        s1[7] = l / 10 + '0';
+        s1[8] = l % 10 + '0';
+        s1[13] = '\0';
+        FILE * fin = fopen(s1, "r");
+        //FILE * fin = fopen("toPoint01.txt", "r");
+
+        string ss;
+        ss.push_back('+');
+        ss.push_back('1');
+        ss.push_back('a');
+        ss.push_back('0'+oe[l][i]+oe[i][l]);
+        ss[4] = '\0';
+        //cout << oe[l][i];
+        //cout << s3 << endl;
+        //\cout << "^";
+        int err = diffGraph(fin, fout, ss, i);
+        if (err){
+            return 0;
+        }
+        fclose(fin);
+        fclose(fout);
+        }}
+    }
+}
+
