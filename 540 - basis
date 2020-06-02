@@ -1,0 +1,123 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+const int n = 270;
+
+string chsToStr(char * s){
+    int n;
+    for (n = 0; s[n] != '\0'; n++);
+    string st;
+    st.resize(n);
+    for (int i = 0; i <= n; i++){
+        st[i] = s[i];
+    }
+    return st;
+}
+char st[n][1000000];
+char pls[2*n][1000000];
+
+int main(){
+    freopen("plusToAll.txt", "r", stdin);
+
+    int x[n];
+    for (int i = 0; i < n; i++){
+        cout << i << endl;
+        char s[14] = {'t','o','P','o','i','n','t','0','0','0','.','t','x','t'};
+        s[14] = '\0';
+        s[7] = i / 100 + '0';
+        s[8] = (i / 10) % 10 + '0';
+        s[9] = i % 10 + '0';
+        s[14] = '\0';
+        FILE * fin = fopen(s, "r");
+        //fprintf(fout, "1");
+        int a;
+        fscanf (fin, "%d %d\n", &a, &a);
+        for (int j = 0; j < n; j++){
+            fscanf (fin, "%s", &st[j]);
+
+            if (st[j][0] != '0'){
+                x[i] = 0;
+                for (int l = 0; st[j][l] != '\0'; l++){
+                    if (st[j][l] == '('){
+                        int k = 0;
+                        l += 2;
+                        for (; st[j][l] != '+' && st[j][l] != '-' && st[j][l] != ')'; l++)
+                            k++;
+                        x[i] += k / 3;
+                    }
+                }
+            }
+        }
+        if (st[0][4] == '\0'){
+            x[i] = 0;
+        }
+        char s1[10] = {'t','o','-','0','0','0','.','t','x','t'};
+        s1[10] = '\0';
+        s1[3] = i / 100 + '0';
+        s1[4] = (i / 10)% 10 + '0';
+        s1[5] = i % 10 + '0';
+        s1[10] = '\0';
+        FILE * fout = fopen(s1, "w");
+        for (int j = 0; j < n; j++){
+            fprintf (fout, "%s\n", st[j]);
+        }
+        for (int j = 0; j < n; j++){
+            fprintf (fout, "%s\n", st[j]);
+        }
+        fclose(fin);
+        fclose(fout);
+    }
+    for (int i = 0; i < 2*n; i++){
+        cin >> pls[i];
+    }
+
+    for (int i = 0; i < n; i++){
+        cout << i << endl;
+        char s[14] = {'t','o','P','o','i','n','t','0','0','0','.','t','x','t'};
+        s[14] = '\0';
+        s[7] = i / 100 + '0';
+        s[8] = (i / 10) % 10 + '0';
+        s[9] = i % 10 + '0';
+        s[14] = '\0';
+        FILE * fin = fopen(s, "r");
+        //fprintf(fout, "1");
+        char s1[10] = {'t', 'o','-','0','0','0','.','t','x','t'};
+        s1[10] = '\0';
+        s1[3] = (i+270) / 100 + '0';
+        s1[4] = ((i+270) / 10)% 10 + '0';
+        s1[5] = (i+270) % 10 + '0';
+        s1[10] = '\0';
+        FILE * fout = fopen(s1, "w");
+        int a;
+        fscanf (fin, "%d %d\n", &a, &a);
+        for (int j = 0; j < n; j++){
+            fscanf (fin, "%s", &st[j]);
+        }
+        for (int j = 0; j < n; j++){
+            if (st[j][0] == '0' || pls[j][0] == '0'){
+                fprintf (fout, "0\n");
+            } else {
+                fprintf (fout, "(%s)", pls[j]);
+                if (st[j][4] != '\0'){
+                    fprintf (fout, "%s", st[j]);
+                }
+                fprintf (fout, "\n");
+            }
+        }
+        for (int j = 0; j < n; j++){
+            if (st[j][0] == '0' || pls[270+j][0] == '0'){
+                fprintf (fout, "0\n");
+            } else {
+                fprintf (fout, "(%s)", pls[270+j]);
+                if (st[j][4] != '\0'){
+                    fprintf (fout, "%s", st[j]);
+                }
+                fprintf (fout, "\n");
+            }
+        }
+        fclose(fin);
+        fclose(fout);
+    }
+    return 0;
+}
